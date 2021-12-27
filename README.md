@@ -15,7 +15,7 @@ Download and unzip the `stories` directories from [here](http://cs.nyu.edu/~kcho
 ## 2. Download Stanford CoreNLP
 We will need Stanford CoreNLP to tokenize the data. Download it [here](https://stanfordnlp.github.io/CoreNLP/) and unzip it. Then add the following command to your bash_profile:
 ```
-export CLASSPATH=/path/to/stanford-corenlp-full-2016-10-31/stanford-corenlp-3.7.0.jar
+export CLASSPATH=$PWD/jars/stanford-corenlp-3.7.0.jar
 ```
 replacing `/path/to/` with the path to where you saved the `stanford-corenlp-full-2016-10-31` directory. You can check if it's working by running
 ```

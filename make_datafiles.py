@@ -4,7 +4,6 @@ import hashlib
 import struct
 import subprocess
 import collections
-import tensorflow as tf
 from tensorflow.core.example import example_pb2
 
 
@@ -46,10 +45,16 @@ def chunk_file(set_name):
         if not len_bytes:
           finished = True
           break
-        str_len = struct.unpack('q', len_bytes)[0]
+        id_len = struct.unpack('q', len_bytes)[0]
+        storyid = struct.unpack('%ds' % id_len, reader.read(id_len))[0]
+        str_len = struct.unpack('q', reader.read(8))[0]
         example_str = struct.unpack('%ds' % str_len, reader.read(str_len))[0]
+
+        writer.write(struct.pack('q', id_len))
+        writer.write(struct.pack('%ds' % id_len, storyid))
         writer.write(struct.pack('q', str_len))
         writer.write(struct.pack('%ds' % str_len, example_str))
+
       chunk += 1
 
 
@@ -159,7 +164,7 @@ def write_to_bin(url_file, out_file, makevocab=False):
     vocab_counter = collections.Counter()
 
   with open(out_file, 'wb') as writer:
-    for idx,s in enumerate(story_fnames):
+    for idx,s in tqdm(enumerate(story_fnames), "Writing bins", total=len(story_fnames)):
       if idx % 1000 == 0:
         print("Writing story %i of %i; %.2f percent done" % (idx, num_stories, float(idx)*100.0/float(num_stories)))
 
@@ -173,7 +178,7 @@ def write_to_bin(url_file, out_file, makevocab=False):
         # Check again if tokenized stories directories contain correct number of files
         print("Checking that the tokenized stories directories %s and %s contain correct number of files..." % (cnn_tokenized_stories_dir, dm_tokenized_stories_dir))
         check_num_stories(cnn_tokenized_stories_dir, num_expected_cnn_stories)
-        check_num_stories(dm_tokenized_stories_dir, num_expected_dm_stories)
+        # check_num_stories(dm_tokenized_stories_dir, num_expected_dm_stories)
         raise Exception("Tokenized stories directories %s and %s contain correct number of files but story file %s found in neither." % (cnn_tokenized_stories_dir, dm_tokenized_stories_dir, s))
 
       # Get the strings to write to .bin file
@@ -185,6 +190,9 @@ def write_to_bin(url_file, out_file, makevocab=False):
       tf_example.features.feature['abstract'].bytes_list.value.extend([abstract.encode()])
       tf_example_str = tf_example.SerializeToString()
       str_len = len(tf_example_str)
+      storyid = str.encode(s[:-6])
+      writer.write(struct.pack('q', len(storyid)))
+      writer.write(struct.pack('%ds' % len(storyid), storyid))
       writer.write(struct.pack('q', str_len))
       writer.write(struct.pack('%ds' % str_len, tf_example_str))
 
