@@ -5,6 +5,7 @@ import struct
 import subprocess
 import collections
 from tensorflow.core.example import example_pb2
+from tqdm import tqdm
 
 
 dm_single_close_quote = u'\u2019' # unicode
@@ -165,9 +166,6 @@ def write_to_bin(url_file, out_file, makevocab=False):
 
   with open(out_file, 'wb') as writer:
     for idx,s in tqdm(enumerate(story_fnames), "Writing bins", total=len(story_fnames)):
-      if idx % 1000 == 0:
-        print("Writing story %i of %i; %.2f percent done" % (idx, num_stories, float(idx)*100.0/float(num_stories)))
-
       # Look in the tokenized story dirs to find the .story file corresponding to this url
       if os.path.isfile(os.path.join(cnn_tokenized_stories_dir, s)):
         story_file = os.path.join(cnn_tokenized_stories_dir, s)
